@@ -1,0 +1,67 @@
+{
+  "name": "syllabus-calendar-mcp",
+  "version": "0.1.0",
+  "description": "Syllabus to calendar MCP server. Extract dates from syllabus text, build an ics calendar, expand recurring classes and merge calendars. Works offline, no account.",
+  "type": "module",
+  "main": "build/src/index.js",
+  "bin": {
+    "syllabus-calendar-mcp": "build/src/index.js"
+  },
+  "files": [
+    "build/src",
+    "README.md",
+    "llms.txt",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "^22.12.0 || ^24.0.0 || >=26.0.0"
+    }
+  },
+  "scripts": {
+    "build": "tsc && node -e \"require('fs').chmodSync('build/src/index.js', 0o755)\"",
+    "test": "vitest run",
+    "start": "node build/src/index.js",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "keywords": [
+    "syllabus",
+    "syllabus to calendar",
+    "syllabus calendar",
+    "calendar",
+    "ics",
+    "ical",
+    "course schedule",
+    "class schedule",
+    "assignment calendar",
+    "recurring classes",
+    "mcp",
+    "mcp server",
+    "model context protocol"
+  ],
+  "author": "AnonymousOnyx22",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AnonymousOnyx22/syllabus-calendar-mcp.git"
+  },
+  "homepage": "https://github.com/AnonymousOnyx22/syllabus-calendar-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/AnonymousOnyx22/syllabus-calendar-mcp/issues"
+  },
+  "mcpName": "io.github.AnonymousOnyx22/syllabus-calendar-mcp",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}

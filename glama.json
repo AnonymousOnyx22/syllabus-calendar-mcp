@@ -1,0 +1,343 @@
+{
+  "$schema": "https://glama.ai/mcp/schemas/server.json",
+  "name": "syllabus-calendar-mcp",
+  "description": "Syllabus to calendar tools. Extract dates, build .ics files, expand classes and merge calendars. Works offline, no account.",
+  "type": "stdio",
+  "license": "MIT",
+  "repository": {
+    "url": "https://github.com/AnonymousOnyx22/syllabus-calendar-mcp",
+    "source": "github"
+  },
+  "homepage": "https://github.com/AnonymousOnyx22/syllabus-calendar-mcp",
+  "version": "0.1.0",
+  "maintainers": [
+    "AnonymousOnyx22"
+  ],
+  "tools": [
+    {
+      "name": "extract_schedule_events",
+      "description": "Extract dated events from pasted syllabus text. Each line that names a date becomes one event, with a title, a type, a date and optional times. Inputs: text (the pasted syllabus or course schedule, one event per line), course (a course name or code to put on every event) and year (the year to use when a date has no year). Titles are read from the words around the date, and each event is marked as an assignment, exam, quiz, lab, reading, class or other. Example prompt: \"Turn this syllabus into calendar events: Assignment 1 due Sep 15, Midterm exam October 20 at 10:00.\"",
+      "parameters": [
+        {
+          "name": "text",
+          "type": "string",
+          "required": true,
+          "description": "The pasted syllabus or course schedule. Put one event on each line, with a date on the line."
+        },
+        {
+          "name": "course",
+          "type": "string",
+          "required": false,
+          "description": "Course name or code to put on every event, such as BIO 101."
+        },
+        {
+          "name": "year",
+          "type": "number",
+          "required": false,
+          "description": "The year to use when a date has no year. Defaults to the current year."
+        }
+      ],
+      "example": {
+        "name": "extract_schedule_events",
+        "arguments": {
+          "text": "Assignment 1 due Sep 15\nMidterm exam October 20 at 10:00",
+          "course": "BIO 101"
+        }
+      },
+      "output": "Two events found.\n\n- Sep 15, 2026: Assignment 1 (assignment) [BIO 101]\n- Oct 20, 2026 at 10:00: Midterm exam (exam) [BIO 101]",
+      "structured_output": "events, count, year"
+    },
+    {
+      "name": "expand_recurring_classes",
+      "description": "Generate the meeting dates for a recurring class between two dates, and skip holidays and reading weeks. Inputs: course, weekdays (day names or codes such as Tuesday or TU), start_date, end_date, start_time, optional end_time, optional location, holidays (single dates or ranges) and reading_weeks (single dates or ranges). Returns every meeting date plus the dates that were skipped and why. Example prompt: \"My biology class meets Tuesday and Thursday from Sep 8 to Dec 10, 2026 at 10:00. Skip the reading week of Oct 12 to Oct 16.\"",
+      "parameters": [
+        {
+          "name": "course",
+          "type": "string",
+          "required": true,
+          "description": "Course name or code, such as BIO 101."
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "description": "Title for the calendar event. Defaults to the course name plus class."
+        },
+        {
+          "name": "weekdays",
+          "type": "array",
+          "required": true,
+          "description": "Days the class meets, as names or codes, such as \"Tuesday\", \"Tue\" or \"TU\".",
+          "items": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "value": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "name": "start_date",
+          "type": "string",
+          "required": true,
+          "description": "First date of the term as YYYY-MM-DD."
+        },
+        {
+          "name": "end_date",
+          "type": "string",
+          "required": true,
+          "description": "Last date of the term as YYYY-MM-DD."
+        },
+        {
+          "name": "start_time",
+          "type": "string",
+          "required": true,
+          "description": "Class start time as HH:MM or 2:30 PM."
+        },
+        {
+          "name": "end_time",
+          "type": "string",
+          "required": false,
+          "description": "Class end time as HH:MM or 2:30 PM. It must be after start_time."
+        },
+        {
+          "name": "location",
+          "type": "string",
+          "required": false,
+          "description": "Room or place."
+        },
+        {
+          "name": "holidays",
+          "type": "array",
+          "required": false,
+          "description": "Holiday dates or ranges, such as \"2026-10-12\" or \"2026-10-12 to 2026-10-16\".",
+          "items": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "value": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "name": "reading_weeks",
+          "type": "array",
+          "required": false,
+          "description": "Reading week dates or ranges, such as \"2026-10-12 to 2026-10-16\".",
+          "items": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "value": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
+      "example": {
+        "name": "expand_recurring_classes",
+        "arguments": {
+          "course": "BIO 101",
+          "weekdays": ["Tuesday", "Thursday"],
+          "start_date": "2026-09-08",
+          "end_date": "2026-12-10",
+          "start_time": "10:00",
+          "reading_weeks": ["2026-10-12 to 2026-10-16"]
+        }
+      },
+      "output": "24 class meetings for BIO 101 from Sep 08, 2026 to Dec 10, 2026.\n\n- Tue Sep 08, 2026 10:00\n- Thu Sep 10, 2026 10:00\n\nSkipped:\n\n- Mon Oct 12, 2026 (reading week)\n- Tue Oct 13, 2026 (reading week)",
+      "structured_output": "course, title, weekdays, start_date, end_date, start_time, end_time, location, meetings, skipped, candidate_count"
+    },
+    {
+      "name": "build_ics",
+      "description": "Build a valid .ics calendar file from dated events and recurring classes, with reminders. Inputs: events (each with title, date, optional start_time, end_time, type, course, location and notes), classes (each with course, weekdays, start_date, end_date, start_time and optional end_time, location, holidays and reading_weeks), reminders_minutes (whole minutes before each event, default 60), calendar_name and optional output_path. Each class becomes one weekly recurring event with holidays and reading weeks removed. The tool checks the file before returning it. Example prompt: \"Make an .ics file for my course with a reminder one day before each assignment.\"",
+      "parameters": [
+        {
+          "name": "events",
+          "type": "array",
+          "required": false,
+          "description": "Dated events such as assignments and exams.",
+          "items": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["assignment", "exam", "quiz", "lab", "reading", "class", "other"]
+              },
+              "date": {
+                "type": "string"
+              },
+              "start_time": {
+                "type": "string"
+              },
+              "end_time": {
+                "type": "string"
+              },
+              "course": {
+                "type": "string"
+              },
+              "location": {
+                "type": "string"
+              },
+              "notes": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "name": "classes",
+          "type": "array",
+          "required": false,
+          "description": "Recurring classes to add as weekly events.",
+          "items": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "course": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "weekdays": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "start_date": {
+                "type": "string"
+              },
+              "end_date": {
+                "type": "string"
+              },
+              "start_time": {
+                "type": "string"
+              },
+              "end_time": {
+                "type": "string"
+              },
+              "location": {
+                "type": "string"
+              },
+              "holidays": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "reading_weeks": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "reminders_minutes",
+          "type": "array",
+          "required": false,
+          "description": "Reminder times in whole minutes before an event. Defaults to [60]. Pass an empty array for no reminders.",
+          "items": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "value": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "name": "calendar_name",
+          "type": "string",
+          "required": false,
+          "description": "Name shown in the calendar app. Defaults to \"Course calendar\"."
+        },
+        {
+          "name": "output_path",
+          "type": "string",
+          "required": false,
+          "description": "Optional file path. When it is passed, the calendar is written there as a .ics file."
+        }
+      ],
+      "example": {
+        "name": "build_ics",
+        "arguments": {
+          "events": [
+            {
+              "title": "Assignment 1",
+              "type": "assignment",
+              "date": "2026-09-15"
+            }
+          ],
+          "reminders_minutes": [1440]
+        }
+      },
+      "output": "Built a calendar with 1 event, 0 classes and 0 class meetings. The file passed every check.\n\n```ics\nBEGIN:VCALENDAR\n...",
+      "structured_output": "ics, event_count, class_count, class_meetings, valid, errors, output_path"
+    },
+    {
+      "name": "merge_calendars",
+      "description": "Merge several course calendars into one and list timed events that overlap. Inputs: calendars (each with an optional name and an ics string), optional calendar_name and optional output_path. Events with the same UID are kept once. Weekly and daily recurring events are expanded when conflicts are checked. Example prompt: \"Merge my three course calendars and tell me which classes conflict.\"",
+      "parameters": [
+        {
+          "name": "calendars",
+          "type": "array",
+          "required": true,
+          "description": "The calendars to merge, each with the calendar text and an optional name.",
+          "items": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "ics": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "name": "calendar_name",
+          "type": "string",
+          "required": false,
+          "description": "Name for the merged calendar. Defaults to \"Merged course calendar\"."
+        },
+        {
+          "name": "output_path",
+          "type": "string",
+          "required": false,
+          "description": "Optional file path. When it is passed, the calendar is written there as a .ics file."
+        }
+      ],
+      "example": {
+        "name": "merge_calendars",
+        "arguments": {
+          "calendars": [
+            {
+              "name": "BIO 101",
+              "ics": "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//AnonymousOnyx22//syllabus-calendar-mcp//EN\nBEGIN:VEVENT\nUID:test1@syllabus-calendar-mcp\nDTSTAMP:20260101T000000Z\nDTSTART:20260915T100000\nDTEND:20260915T110000\nSUMMARY:Class\nEND:VEVENT\nEND:VCALENDAR"
+            }
+          ],
+          "calendar_name": "Merged"
+        }
+      },
+      "output": "Merged 1 event from 1 calendar.\n\nNo timed events overlap.",
+      "structured_output": "ics, event_count, calendar_count, conflicts, valid, errors, output_path"
+    }
+  ]
+}

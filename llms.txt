@@ -1,0 +1,84 @@
+# syllabus-calendar-mcp
+
+> Syllabus to calendar MCP server. Extract dated events from syllabus text, build valid .ics calendars from events and recurring classes, expand classes with holidays and reading weeks skipped, and merge calendars while checking for conflicts. Works offline, no account.
+
+## Setup
+- Run with npx -y syllabus-calendar-mcp
+- Works offline, no account. No environment variables, no network calls and no data is stored.
+- Tools: extract_schedule_events, expand_recurring_classes, build_ics, merge_calendars.
+
+## Tools
+
+### extract_schedule_events
+Extract dated events from pasted syllabus text. Each line that names a date becomes one event, with a title, a type, a date and optional times. Inputs: text (the pasted syllabus or course schedule, one event per line), course (a course name or code to put on every event) and year (the year to use when a date has no year). Titles are read from the words around the date, and each event is marked as an assignment, exam, quiz, lab, reading, class or other. Example prompt: "Turn this syllabus into calendar events: Assignment 1 due Sep 15, Midterm exam October 20 at 10:00."
+
+Parameters: text (string, required), course (string, optional), year (number, optional).
+- text (string, required): The pasted syllabus or course schedule. Put one event on each line, with a date on the line.
+- course (string, optional): Course name or code to put on every event, such as BIO 101.
+- year (number, optional): The year to use when a date has no year. Defaults to the current year.
+
+Example call: {"name":"extract_schedule_events","arguments":{"text":"Assignment 1 due Sep 15\nMidterm exam October 20 at 10:00","course":"BIO 101"}}
+Output: Two events found.
+
+- Sep 15, 2026: Assignment 1 (assignment) [BIO 101]
+- Oct 20, 2026 at 10:00: Midterm exam (exam) [BIO 101]
+Structured output: events, count, year
+
+### expand_recurring_classes
+Generate the meeting dates for a recurring class between two dates, and skip holidays and reading weeks. Inputs: course, weekdays (day names or codes such as Tuesday or TU), start_date, end_date, start_time, optional end_time, optional location, holidays (single dates or ranges) and reading_weeks (single dates or ranges). Returns every meeting date plus the dates that were skipped and why. Example prompt: "My biology class meets Tuesday and Thursday from Sep 8 to Dec 10, 2026 at 10:00. Skip the reading week of Oct 12 to Oct 16."
+
+Parameters: course (string, required), title (string, optional), weekdays (array, required), start_date (string, required), end_date (string, required), start_time (string, required), end_time (string, optional), location (string, optional), holidays (array, optional), reading_weeks (array, optional).
+- course (string, required): Course name or code, such as BIO 101.
+- title (string, optional): Title for the calendar event. Defaults to the course name plus class.
+- weekdays (array, required): Days the class meets, as names or codes, such as "Tuesday", "Tue" or "TU".
+- start_date (string, required): First date of the term as YYYY-MM-DD.
+- end_date (string, required): Last date of the term as YYYY-MM-DD.
+- start_time (string, required): Class start time as HH:MM or 2:30 PM.
+- end_time (string, optional): Class end time as HH:MM or 2:30 PM. It must be after start_time.
+- location (string, optional): Room or place.
+- holidays (array, optional): Holiday dates or ranges, such as "2026-10-12" or "2026-10-12 to 2026-10-16".
+- reading_weeks (array, optional): Reading week dates or ranges, such as "2026-10-12 to 2026-10-16".
+
+Example call: {"name":"expand_recurring_classes","arguments":{"course":"BIO 101","weekdays":["Tuesday","Thursday"],"start_date":"2026-09-08","end_date":"2026-12-10","start_time":"10:00","reading_weeks":["2026-10-12 to 2026-10-16"]}}
+Output: 24 class meetings for BIO 101 from Sep 08, 2026 to Dec 10, 2026.
+
+- Tue Sep 08, 2026 10:00
+- Thu Sep 10, 2026 10:00
+
+Skipped:
+
+- Mon Oct 12, 2026 (reading week)
+- Tue Oct 13, 2026 (reading week)
+Structured output: course, title, weekdays, start_date, end_date, start_time, end_time, location, meetings, skipped, candidate_count
+
+### build_ics
+Build a valid .ics calendar file from dated events and recurring classes, with reminders. Inputs: events (each with title, date, optional start_time, end_time, type, course, location and notes), classes (each with course, weekdays, start_date, end_date, start_time and optional end_time, location, holidays and reading_weeks), reminders_minutes (whole minutes before each event, default 60), calendar_name and optional output_path. Each class becomes one weekly recurring event with holidays and reading weeks removed. The tool checks the file before returning it. Example prompt: "Make an .ics file for my course with a reminder one day before each assignment."
+
+Parameters: events (array, optional), classes (array, optional), reminders_minutes (array, optional), calendar_name (string, optional), output_path (string, optional).
+- events (array, optional): Dated events such as assignments and exams.
+- classes (array, optional): Recurring classes to add as weekly events.
+- reminders_minutes (array, optional): Reminder times in whole minutes before an event. Defaults to [60].
+- calendar_name (string, optional): Name shown in the calendar app. Defaults to "Course calendar".
+- output_path (string, optional): Optional file path. When it is passed, the calendar is written there as a .ics file.
+
+Example call: {"name":"build_ics","arguments":{"events":[{"title":"Assignment 1","type":"assignment","date":"2026-09-15"}],"reminders_minutes":[1440]}}
+Output: Built a calendar with 1 event, 0 classes and 0 class meetings. The file passed every check.
+Structured output: ics, event_count, class_count, class_meetings, valid, errors, output_path
+
+### merge_calendars
+Merge several course calendars into one and list timed events that overlap. Inputs: calendars (each with an optional name and an ics string), optional calendar_name and optional output_path. Events with the same UID are kept once. Weekly and daily recurring events are expanded when conflicts are checked. Example prompt: "Merge my three course calendars and tell me which classes conflict."
+
+Parameters: calendars (array, required), calendar_name (string, optional), output_path (string, optional).
+- calendars (array, required): The calendars to merge, each with the calendar text and an optional name.
+- calendar_name (string, optional): Name for the merged calendar. Defaults to "Merged course calendar".
+- output_path (string, optional): Optional file path. When it is passed, the calendar is written there as a .ics file.
+
+Example call: {"name":"merge_calendars","arguments":{"calendars":[{"name":"BIO 101","ics":"BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//AnonymousOnyx22//syllabus-calendar-mcp//EN\nBEGIN:VEVENT\nUID:test1@syllabus-calendar-mcp\nDTSTAMP:20260101T000000Z\nDTSTART:20260915T100000\nDTEND:20260915T110000\nSUMMARY:Class\nEND:VEVENT\nEND:VCALENDAR"}],"calendar_name":"Merged"}}
+Output: Merged 1 event from 1 calendar.
+
+No timed events overlap.
+Structured output: ics, event_count, calendar_count, conflicts, valid, errors, output_path
+
+## Links
+- Source and README, https://github.com/AnonymousOnyx22/syllabus-calendar-mcp
+- More free student tools, https://brightspacemcp.com/more-mcps/
