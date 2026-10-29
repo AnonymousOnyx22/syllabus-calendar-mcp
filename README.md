@@ -7,7 +7,40 @@
 
 syllabus to calendar mcp is a free [mcp](https://modelcontextprotocol.io) server, published on npm as `syllabus-calendar-mcp`. turn pasted syllabus text into calendar events, build valid .ics files from events and recurring classes, skip holidays and reading weeks, and merge calendars to find conflicts. the math and parsing are done by tested code. it runs on your computer, needs no internet and no login.
 
+parses pasted text from Canvas, Brightspace, Moodle or a PDF export.
+
 free forever. no account.
+
+## sample output
+
+paste text like this:
+
+```text
+Assignment 1 due Sep 15
+Midterm exam October 20 at 10:00
+Lab report 2 due Dec 8
+```
+
+`extract_schedule_events` with `course` set to BIO 101 and `year` set to 2026 returns:
+
+```text
+3 events found.
+
+- Tue, Sep 15, 2026: Assignment 1 (assignment) [BIO 101]
+- Tue, Oct 20, 2026 at 10:00: Midterm exam (exam) [BIO 101]
+- Tue, Dec 8, 2026: Lab report 2 (lab) [BIO 101]
+```
+
+`build_ics` turns those events into a calendar that starts like this:
+
+```ics
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//AnonymousOnyx22//syllabus-calendar-mcp//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:BIO 101
+```
 
 ## install
 
