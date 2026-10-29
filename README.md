@@ -11,6 +11,10 @@ parses pasted text from Canvas, Brightspace, Moodle or a PDF export.
 
 free forever. no account.
 
+## comparison
+
+brightspace-mcp-server and @exhabition/brightspace-mcp need a brightspace login before they can read anything. this server needs no account, no api key and no network. it works on syllabus text you paste, so it covers any school's syllabus, not only brightspace courses.
+
 ## sample output
 
 paste text like this:
