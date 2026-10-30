@@ -134,7 +134,7 @@ vs code also reads a portable `.mcp.json` file in the project root. that file us
 
 restart vs code after you save the file.
 
-## try these three prompts
+## try these four prompts
 
 1. turn syllabus text into events
 
@@ -153,6 +153,12 @@ restart vs code after you save the file.
    > "make an .ics file for my course with a reminder one day before each assignment."
 
    the model calls `build_ics` with events and reminders to produce a valid calendar.
+
+4. check for conflicts
+
+   > "merge my three course calendars and tell me which classes conflict."
+
+   the model calls `merge_calendars`, which merges the calendars, drops duplicate events by uid and lists timed events that overlap.
 
 ## tools
 
