@@ -44,6 +44,12 @@ describe("extract_schedule_events", () => {
     expect(r.structured?.count).toBe(2);
     expect((r.structured?.events as any[])[0].title).toContain("Assignment");
   });
+  it("hints at build_ics", async () => {
+    const r = await call("extract_schedule_events", { text: "Assignment 1 due Sep 15", year: 2026 });
+    expect(r.isError).toBe(false);
+    expect(r.text).toContain("Next: pass these events to build_ics as events");
+    expect(r.structured?.next_step).toBe("Next: pass these events to build_ics as events to make an .ics calendar.");
+  });
   it("reports lines without a date", async () => {
     const r = await call("extract_schedule_events", {
       text: "Assignment 1 due Sep 15\nOffice hours by appointment\nLab report 2 due Dec 8",
@@ -68,6 +74,12 @@ describe("expand_recurring_classes", () => {
     expect(r.isError).toBe(false);
     expect((r.structured?.meetings as any[]).length).toBeGreaterThan(0);
     expect((r.structured?.skipped as any[]).length).toBeGreaterThan(0);
+  });
+  it("hints at build_ics classes", async () => {
+    const r = await call("expand_recurring_classes", { course: "BIO 101", weekdays: ["Tuesday"], start_date: "2026-09-08", end_date: "2026-09-15", start_time: "10:00" });
+    expect(r.isError).toBe(false);
+    expect(r.text).toContain("Next: pass this class to build_ics in classes");
+    expect(r.structured?.next_step).toBe("Next: pass this class to build_ics in classes to make an .ics calendar.");
   });
 });
 

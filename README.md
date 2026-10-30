@@ -33,6 +33,8 @@ Lab report 2 due Dec 8
 - Tue, Sep 15, 2026: Assignment 1 (assignment) [BIO 101]
 - Tue, Oct 20, 2026 at 10:00: Midterm exam (exam) [BIO 101]
 - Tue, Dec 8, 2026: Lab report 2 (lab) [BIO 101]
+
+Next: pass these events to build_ics as events to make an .ics calendar.
 ```
 
 if a pasted line has no date, it is not dropped. `extract_schedule_events` returns those lines in `undated_lines` and lists them below the events, so you can fix the text and run the tool again.
@@ -168,8 +170,8 @@ four tools. these names are the ones your ai app sees.
 
 | tool | parameters | what it does | example prompt |
 | --- | --- | --- | --- |
-| `extract_schedule_events` | `text`, `course`, `year` | extract dated events from pasted syllabus text, one per line with dates. lines with no date are returned in `undated_lines`. | "turn this syllabus into calendar events: assignment 1 due sep 15, midterm exam october 20 at 10:00." |
-| `expand_recurring_classes` | `course`, `title`, `weekdays`, `start_date`, `end_date`, `start_time`, `end_time`, `location`, `holidays`, `reading_weeks` | generate meeting dates for a recurring class, skipping holidays and reading weeks. | "my biology class meets tuesday and thursday from sep 8 to dec 10, 2026 at 10:00. skip the reading week of oct 12 to oct 16." |
+| `extract_schedule_events` | `text`, `course`, `year` | extract dated events from pasted syllabus text, one per line with dates. lines with no date are returned in `undated_lines`. ends with a next step hint to `build_ics`. | "turn this syllabus into calendar events: assignment 1 due sep 15, midterm exam october 20 at 10:00." |
+| `expand_recurring_classes` | `course`, `title`, `weekdays`, `start_date`, `end_date`, `start_time`, `end_time`, `location`, `holidays`, `reading_weeks` | generate meeting dates for a recurring class, skipping holidays and reading weeks. ends with a next step hint to `build_ics`. | "my biology class meets tuesday and thursday from sep 8 to dec 10, 2026 at 10:00. skip the reading week of oct 12 to oct 16." |
 | `build_ics` | `events`, `classes`, `reminders_minutes`, `calendar_name`, `output_path` | build a valid .ics calendar from events and classes, with reminders. write to a file when output_path is passed. | "make an .ics file for my course with a reminder one day before each assignment." |
 | `merge_calendars` | `calendars`, `calendar_name`, `output_path` | merge calendars, dedupe by uid and list timed conflicts. write to a file when output_path is passed. | "merge my three course calendars and tell me which classes conflict." |
 

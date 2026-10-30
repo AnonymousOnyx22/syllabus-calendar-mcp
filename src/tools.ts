@@ -86,6 +86,7 @@ export const tools: ToolDef<Api>[] = [
       "Inputs: text (the pasted syllabus or course schedule, one event per line), course (a course name or code to put on every event) and year (the year to use when a date has no year). " +
       "Titles are read from the words around the date, and each event is marked as an assignment, exam, quiz, lab, reading, class or other. " +
       "Any line that has no date is returned in undated_lines instead of being dropped silently. " +
+      "The answer ends with a next step hint that points to build_ics when the events should become a calendar. " +
       'Example prompt: "Turn this syllabus into calendar events: Assignment 1 due Sep 15, Midterm exam October 20 at 10:00."',
     inputSchema: {
       text: z.string().min(1).describe("The pasted syllabus or course schedule. Put one event on each line, with a date on the line."),
@@ -103,6 +104,7 @@ export const tools: ToolDef<Api>[] = [
       count: z.number().describe("How many events were found."),
       year: z.number().describe("The year used for dates that did not name one."),
       undated_lines: z.array(z.string()).describe("Lines that had no date, kept in the order they appeared so they can be fixed."),
+      next_step: z.string().describe("Suggested next tool call for turning the events into a calendar."),
     },
     run: async (a) => {
       const result = extractEvents(a.text, { course: a.course, year: a.year });
@@ -113,6 +115,8 @@ export const tools: ToolDef<Api>[] = [
         text += `\n\n${result.undated_lines.length} ${undatedLabel} had no date and were not turned into events:\n\n${bullets(result.undated_lines)}`;
       }
       text += `\n\n${bullets(result.events.map(describeEvent))}`;
+      const nextStep = "Next: pass these events to build_ics as events to make an .ics calendar.";
+      text += `\n\n${nextStep}`;
       return {
         text,
         structured: {
@@ -120,6 +124,7 @@ export const tools: ToolDef<Api>[] = [
           count: result.count,
           year: result.year,
           undated_lines: result.undated_lines,
+          next_step: nextStep,
         },
       };
     },
@@ -131,6 +136,7 @@ export const tools: ToolDef<Api>[] = [
       "Generate the meeting dates for a recurring class between two dates, and skip holidays and reading weeks. " +
       "Inputs: course, weekdays (day names or codes such as Tuesday or TU), start_date, end_date, start_time, optional end_time, optional location, holidays (single dates or ranges) and reading_weeks (single dates or ranges). " +
       "Returns every meeting date plus the dates that were skipped and why. " +
+      "The answer ends with a next step hint that points to build_ics when the class should become a calendar. " +
       'Example prompt: "My biology class meets Tuesday and Thursday from Sep 8 to Dec 10, 2026 at 10:00. Skip the reading week of Oct 12 to Oct 16."',
     inputSchema: {
       course: z.string().min(1).describe("Course name or code, such as BIO 101."),
@@ -156,6 +162,7 @@ export const tools: ToolDef<Api>[] = [
       meetings: z.array(meetingFields).describe("Every class meeting, in date order."),
       skipped: z.array(skippedFields).describe("Dates that were skipped, with the reason."),
       candidate_count: z.number().describe("How many dates matched the weekdays before holidays and reading weeks were removed."),
+      next_step: z.string().describe("Suggested next tool call for turning the class meetings into a calendar."),
     },
     run: async (a) => {
       const result = expandMeetings(a as RecurringClass);
@@ -169,10 +176,12 @@ export const tools: ToolDef<Api>[] = [
         const skipped = result.skipped.map((day) => `${formatDate(day.date)} (${day.reason})`);
         text += `\n\nSkipped:\n\n${bullets(skipped)}`;
       }
+      const nextStep = "Next: pass this class to build_ics in classes to make an .ics calendar.";
+      text += `\n\n${nextStep}`;
       const { meetings, skipped, ...rest } = result;
       return {
         text,
-        structured: { ...rest, meetings, skipped },
+        structured: { ...rest, meetings, skipped, next_step: nextStep },
       };
     },
   },
