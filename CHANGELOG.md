@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.1
 
 - extract_schedule_events now returns lines that have no date in undated_lines and lists them in the text answer, instead of dropping them silently.
 
