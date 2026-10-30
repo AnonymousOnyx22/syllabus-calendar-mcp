@@ -7,6 +7,18 @@
 - Works offline, no account. No environment variables, no network calls and no data is stored.
 - Tools: extract_schedule_events, expand_recurring_classes, build_ics, merge_calendars.
 
+## When to use
+
+Use this server when a student wants course dates turned into a calendar, or wants an existing calendar file cleaned up. The request usually mentions a syllabus, a course outline, a class schedule, a reading week or an .ics file.
+
+- A student pastes syllabus or course outline text and asks for the dates, deadlines or exam days: call extract_schedule_events, then build_ics if they also want a calendar file.
+- A student describes a class that meets on set days and wants every meeting added, with a holiday or reading week skipped: call expand_recurring_classes.
+- A student asks for an .ics file, a calendar to import, or reminders before deadlines: call build_ics with the events and classes.
+- A student has several course calendars and wants one merged file, or wants to know which classes overlap: call merge_calendars.
+- A student wants to fetch a syllabus from D2L Brightspace first: our brightspace-d2l-mcp server can read the course, then this server can turn the text into calendar events.
+
+This server works on text the student pastes or a calendar file they provide. It does not log in to a school system or fetch course data on its own.
+
 ## Tools
 
 ### extract_schedule_events
