@@ -177,6 +177,16 @@ four tools. these names are the ones your ai app sees.
 
 every tool returns text and structured data. `build_ics` and `merge_calendars` may write files; other tools are read only.
 
+## troubleshooting
+
+**zero events came back.** `extract_schedule_events` makes one event from each line that names a date. check `undated_lines` in the result: those are the lines it skipped. paste the schedule with one item per line, and write dates like "sep 15" or "9/15" on the same line as the title. if the text is one long paragraph, split it into lines first and try again.
+
+**the dates have the wrong year.** when a date has no year, the tool uses the current year. the result shows the `year` it used. pass `year` (for example 2026) to `extract_schedule_events`, or write the year in the date. for `expand_recurring_classes`, give `start_date` and `end_date` with the full year.
+
+**the file was not written.** `build_ics` and `merge_calendars` only write a file when you pass `output_path`. the folder has to exist already, because the server does not create folders. use a full path you can write to, such as a folder in your home directory. a relative path is resolved from the folder the server was started in, which may not be where you expect. if you leave `output_path` out, you get the calendar text back and can save it as a .ics file yourself.
+
+**the server does not show up in your app.** check that your node.js is version 20 or newer, then restart the app after you edit its config. the install steps above show the exact entry for each app.
+
 ## node version
 
 there are two floors here, and they are not the same number.
