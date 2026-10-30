@@ -10,7 +10,7 @@
 ## Tools
 
 ### extract_schedule_events
-Extract dated events from pasted syllabus text. Each line that names a date becomes one event, with a title, a type, a date and optional times. Inputs: text (the pasted syllabus or course schedule, one event per line), course (a course name or code to put on every event) and year (the year to use when a date has no year). Titles are read from the words around the date, and each event is marked as an assignment, exam, quiz, lab, reading, class or other. Example prompt: "Turn this syllabus into calendar events: Assignment 1 due Sep 15, Midterm exam October 20 at 10:00."
+Extract dated events from pasted syllabus text. Each line that names a date becomes one event, with a title, a type, a date and optional times. Inputs: text (the pasted syllabus or course schedule, one event per line), course (a course name or code to put on every event) and year (the year to use when a date has no year). Titles are read from the words around the date, and each event is marked as an assignment, exam, quiz, lab, reading, class or other. Any line that has no date is returned in undated_lines instead of being dropped. Example prompt: "Turn this syllabus into calendar events: Assignment 1 due Sep 15, Midterm exam October 20 at 10:00."
 
 Parameters: text (string, required), course (string, optional), year (number, optional).
 - text (string, required): The pasted syllabus or course schedule. Put one event on each line, with a date on the line.
@@ -22,7 +22,7 @@ Output: Two events found.
 
 - Sep 15, 2026: Assignment 1 (assignment) [BIO 101]
 - Oct 20, 2026 at 10:00: Midterm exam (exam) [BIO 101]
-Structured output: events, count, year
+Structured output: events, count, year, undated_lines
 
 ### expand_recurring_classes
 Generate the meeting dates for a recurring class between two dates, and skip holidays and reading weeks. Inputs: course, weekdays (day names or codes such as Tuesday or TU), start_date, end_date, start_time, optional end_time, optional location, holidays (single dates or ranges) and reading_weeks (single dates or ranges). Returns every meeting date plus the dates that were skipped and why. Example prompt: "My biology class meets Tuesday and Thursday from Sep 8 to Dec 10, 2026 at 10:00. Skip the reading week of Oct 12 to Oct 16."

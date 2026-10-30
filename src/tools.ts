@@ -85,6 +85,7 @@ export const tools: ToolDef<Api>[] = [
       "Extract dated events from pasted syllabus text. Each line that names a date becomes one event, with a title, a type, a date and optional times. " +
       "Inputs: text (the pasted syllabus or course schedule, one event per line), course (a course name or code to put on every event) and year (the year to use when a date has no year). " +
       "Titles are read from the words around the date, and each event is marked as an assignment, exam, quiz, lab, reading, class or other. " +
+      "Any line that has no date is returned in undated_lines instead of being dropped silently. " +
       'Example prompt: "Turn this syllabus into calendar events: Assignment 1 due Sep 15, Midterm exam October 20 at 10:00."',
     inputSchema: {
       text: z.string().min(1).describe("The pasted syllabus or course schedule. Put one event on each line, with a date on the line."),
@@ -101,16 +102,24 @@ export const tools: ToolDef<Api>[] = [
       events: z.array(eventFields).describe("Every dated event that was found, in date order."),
       count: z.number().describe("How many events were found."),
       year: z.number().describe("The year used for dates that did not name one."),
+      undated_lines: z.array(z.string()).describe("Lines that had no date, kept in the order they appeared so they can be fixed."),
     },
     run: async (a) => {
       const result = extractEvents(a.text, { course: a.course, year: a.year });
       const label = result.count === 1 ? "event" : "events";
+      let text = `${result.count} ${label} found.`;
+      if (result.undated_lines.length) {
+        const undatedLabel = result.undated_lines.length === 1 ? "line" : "lines";
+        text += `\n\n${result.undated_lines.length} ${undatedLabel} had no date and were not turned into events:\n\n${bullets(result.undated_lines)}`;
+      }
+      text += `\n\n${bullets(result.events.map(describeEvent))}`;
       return {
-        text: `${result.count} ${label} found.\n\n${bullets(result.events.map(describeEvent))}`,
+        text,
         structured: {
           events: result.events,
           count: result.count,
           year: result.year,
+          undated_lines: result.undated_lines,
         },
       };
     },

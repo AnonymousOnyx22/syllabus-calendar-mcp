@@ -15,6 +15,7 @@ export interface ExtractResult {
   events: ExtractedEvent[];
   count: number;
   year: number;
+  undated_lines: string[];
 }
 
 interface Hit {
@@ -107,12 +108,13 @@ function classify(title: string): EventType {
 
 /**
  * Pulls one dated event from each line of a syllabus that names a date.
- * A line with no date is not an event, so headings and notes are ignored.
+ * Lines with no date are collected in undated_lines, so they are not lost silently.
  */
 export function extractEvents(text: string, options: { course?: string; year?: number } = {}): ExtractResult {
   const year = options.year ?? new Date().getUTCFullYear();
   const fixedCourse = options.course?.trim() || null;
   const events: ExtractedEvent[] = [];
+  const undatedLines: string[] = [];
   const seen = new Set<string>();
 
   for (const rawLine of text.split(/\r?\n/)) {
@@ -121,7 +123,10 @@ export function extractEvents(text: string, options: { course?: string; year?: n
     if (!line) continue;
 
     const date = findDate(line, year);
-    if (!date) continue;
+    if (!date) {
+      undatedLines.push(line);
+      continue;
+    }
 
     const times = findTimes(line).filter((hit) => hit.index !== date.index);
     const withoutDate = stripRanges(line, [date, ...times]);
@@ -166,7 +171,7 @@ export function extractEvents(text: string, options: { course?: string; year?: n
     );
   }
 
-  return { events, count: events.length, year };
+  return { events, count: events.length, year, undated_lines: undatedLines };
 }
 
 /** A short line for the text answer of extract_schedule_events. */

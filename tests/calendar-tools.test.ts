@@ -44,6 +44,18 @@ describe("extract_schedule_events", () => {
     expect(r.structured?.count).toBe(2);
     expect((r.structured?.events as any[])[0].title).toContain("Assignment");
   });
+  it("reports lines without a date", async () => {
+    const r = await call("extract_schedule_events", {
+      text: "Assignment 1 due Sep 15\nOffice hours by appointment\nLab report 2 due Dec 8",
+      course: "BIO 101",
+      year: 2026,
+    });
+    expect(r.isError).toBe(false);
+    expect(r.structured?.count).toBe(2);
+    expect(r.structured?.undated_lines).toEqual(["Office hours by appointment"]);
+    expect(r.text).toContain("1 line had no date");
+    expect(r.text).toContain("Office hours by appointment");
+  });
   it("errors when no dates found", async () => {
     const r = await call("extract_schedule_events", { text: "Just some notes" });
     expect(r.isError).toBe(true);

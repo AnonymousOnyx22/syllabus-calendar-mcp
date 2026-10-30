@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- extract_schedule_events now returns lines that have no date in undated_lines and lists them in the text answer, instead of dropping them silently.
+
 ## 0.1.0
 
 - First release. Added extract_schedule_events, expand_recurring_classes, build_ics and merge_calendars.
