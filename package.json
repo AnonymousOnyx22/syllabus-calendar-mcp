@@ -1,6 +1,6 @@
 {
   "name": "syllabus-calendar-mcp",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Syllabus to Calendar MCP server: turn syllabus text into calendar events and an ics file, expand recurring classes and merge calendars. Works offline, no account.",
   "type": "module",
   "main": "build/src/index.js",

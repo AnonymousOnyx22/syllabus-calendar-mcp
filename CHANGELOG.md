@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.2
 
 - extract_schedule_events now lists the lines that had no date and suggests adding a date when no events are found, instead of only saying no dated events were found.
 
