@@ -1,7 +1,7 @@
 {
   "$schema": "https://glama.ai/mcp/schemas/server.json",
   "name": "syllabus-calendar-mcp",
-  "description": "Syllabus to calendar tools. Extract dates, build .ics files, expand classes and merge calendars. Works offline, no account.",
+  "description": "Syllabus to calendar MCP server. Helps a student extract dates, build .ics files, expand classes and merge calendars. Works offline, no account.",
   "type": "stdio",
   "license": "MIT",
   "repository": {
