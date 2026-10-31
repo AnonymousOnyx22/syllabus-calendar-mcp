@@ -50,6 +50,22 @@ METHOD:PUBLISH
 X-WR-CALNAME:BIO 101
 ```
 
+## import into your calendar
+
+the .ics file works in any calendar app. save the file, then import it.
+
+### google calendar
+
+open google calendar in a browser. click the gear icon, then settings. open import and export, choose the .ics file, pick the calendar to add it to, then click import.
+
+### apple calendar
+
+double click the .ics file. calendar opens and asks which calendar to add the events to. or open calendar, choose file, then import.
+
+### outlook
+
+open outlook. choose file, then open and export, then import and export. pick import an ics or vcal file, select the .ics file and import it.
+
 ## install
 
 run it straight from npm with `npx`. you need node.js 20 or newer, see [node version](#node-version) for the details.
