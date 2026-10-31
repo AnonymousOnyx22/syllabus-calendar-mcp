@@ -107,6 +107,20 @@ function classify(title: string): EventType {
 }
 
 /**
+ * Builds the hint shown when no dated events are found: lists the lines that
+ * had no date and tells the user to add one, with an example.
+ */
+export function fixTheTextHint(undatedLines: string[]): string {
+  if (undatedLines.length === 0) {
+    return "Add a date to each line, such as Assignment 1 due Sep 15, or Midterm exam on October 20, 2026 at 10:00.";
+  }
+  const count = undatedLines.length;
+  const label = count === 1 ? "line" : "lines";
+  const listed = undatedLines.map((line) => `- ${line}`).join("\n");
+  return `None of the ${count} ${label} named a date:\n${listed}\nAdd a date to each line, such as Sep 15 or October 20, 2026 at 10:00.`;
+}
+
+/**
  * Pulls one dated event from each line of a syllabus that names a date.
  * Lines with no date are collected in undated_lines, so they are not lost silently.
  */
@@ -166,9 +180,7 @@ export function extractEvents(text: string, options: { course?: string; year?: n
   events.sort((a, b) => a.date.localeCompare(b.date) || (a.start_time ?? "00:00").localeCompare(b.start_time ?? "00:00") || a.title.localeCompare(b.title));
 
   if (events.length === 0) {
-    throw new Error(
-      "No dated events found. Put one event on each line with a date, such as Assignment 1 due Sep 15, or Midterm exam on October 20, 2026 at 10:00.",
-    );
+    throw new Error(`No dated events found. ${fixTheTextHint(undatedLines)}`);
   }
 
   return { events, count: events.length, year, undated_lines: undatedLines };
