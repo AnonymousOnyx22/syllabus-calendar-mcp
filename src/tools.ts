@@ -83,7 +83,7 @@ export const tools: ToolDef<Api>[] = [
     title: "Extract schedule events",
     description:
       "Extract dated events from pasted syllabus text. Each line that names a date becomes one event, with a title, a type, a date and optional times. " +
-      "Inputs: text (the pasted syllabus or course schedule, one event per line), course (a course name or code to put on every event) and year (the year to use when a date has no year). " +
+      "Inputs: text (the pasted syllabus or course schedule, one event per line), course (a course name or code to put on every event), year (the year to use when a date has no year) and term_start (the first day of the term, so a line such as Week 5: Midterm becomes an event). " +
       "Titles are read from the words around the date, and each event is marked as an assignment, exam, quiz, lab, reading, class or other. " +
       "Any line that has no date is returned in undated_lines instead of being dropped silently. " +
       "The answer ends with a next step hint that points to build_ics when the events should become a calendar. " +
@@ -99,6 +99,10 @@ export const tools: ToolDef<Api>[] = [
         .max(2200)
         .optional()
         .describe("The year to use when a date has no year. Defaults to the current year."),
+      term_start: z
+        .string()
+        .optional()
+        .describe("First day of the term as YYYY-MM-DD. When set, a line like Week 5: Midterm with no date becomes an event on the first day of week 5, where week 1 starts on this date."),
     },
     outputSchema: {
       events: z.array(eventFields).describe("Every dated event that was found, in date order."),
@@ -108,7 +112,7 @@ export const tools: ToolDef<Api>[] = [
       next_step: z.string().describe("Suggested next tool call for turning the events into a calendar."),
     },
     run: async (a) => {
-      const result = extractEvents(a.text, { course: a.course, year: a.year });
+      const result = extractEvents(a.text, { course: a.course, year: a.year, termStart: a.term_start });
       if (result.count === 0) {
         const nextStep = fixTheTextHint(result.undated_lines);
         return {

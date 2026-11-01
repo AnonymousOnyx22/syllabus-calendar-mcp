@@ -79,3 +79,26 @@ describe("extractEvents with numeric and day first dates", () => {
     expect(result.events.map((e) => e.title)).toContain("Essay");
   });
 });
+
+describe("extractEvents with term_start", () => {
+  const text = "Week 1: Welcome class\nWeek 5: Midterm exam\nAssignment 2 due Oct 1\nReading week";
+
+  it("turns Week N lines into events when termStart is set", () => {
+    const result = extractEvents(text, { year: 2026, termStart: "2026-09-08" });
+    expect(result.events.map((e) => [e.date, e.title])).toEqual([
+      ["2026-09-08", "Welcome class"],
+      ["2026-10-01", "Assignment 2"],
+      ["2026-10-06", "Midterm exam"],
+    ]);
+    expect(result.undated_lines).toEqual(["Reading week"]);
+  });
+
+  it("keeps Week N lines undated without termStart", () => {
+    const result = extractEvents(text, { year: 2026 });
+    expect(result.undated_lines).toContain("Week 5: Midterm exam");
+  });
+
+  it("rejects a term_start that is not a date", () => {
+    expect(() => extractEvents(text, { termStart: "soon" })).toThrow(/term_start/);
+  });
+});

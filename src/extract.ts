@@ -92,6 +92,17 @@ function findDate(text: string, defaultYear: number): Hit | null {
   return widenDate(text, hits[0], defaultYear);
 }
 
+/** Reads a Week N label as the date that is N - 1 weeks after the first day of the term. */
+function findWeek(text: string, termStart: string): Hit | null {
+  const match = /\bweek\s+(\d{1,2})\b/i.exec(text);
+  if (!match) return null;
+  const week = parseInt(match[1], 10);
+  if (week < 1) return null;
+  const day = new Date(`${termStart}T00:00:00Z`);
+  day.setUTCDate(day.getUTCDate() + (week - 1) * 7);
+  return { index: match.index, length: match[0].length, value: day.toISOString().slice(0, 10) };
+}
+
 function findTimes(text: string): Hit[] {
   const hits: Hit[] = [];
   const ampm = /\b\d{1,2}(?::\d{2})?\s*[ap]\.?m\.?\b/gi;
@@ -164,9 +175,18 @@ export function fixTheTextHint(undatedLines: string[]): string {
 /**
  * Pulls one dated event from each line of a syllabus that names a date.
  * Lines with no date are collected in undated_lines, so they are not lost silently.
+ * With termStart, a Week N label counts as a date: Week 1 starts on termStart.
  */
-export function extractEvents(text: string, options: { course?: string; year?: number } = {}): ExtractResult {
+export function extractEvents(text: string, options: { course?: string; year?: number; termStart?: string } = {}): ExtractResult {
   const year = options.year ?? new Date().getUTCFullYear();
+  let termStart: string | null = null;
+  if (options.termStart?.trim()) {
+    try {
+      termStart = parseDateValue(options.termStart.trim(), year);
+    } catch {
+      throw new Error(`term_start "${options.termStart}" is not a date. Use YYYY-MM-DD, such as 2026-09-08.`);
+    }
+  }
   const fixedCourse = options.course?.trim() || null;
   const events: ExtractedEvent[] = [];
   const undatedLines: string[] = [];
@@ -177,7 +197,7 @@ export function extractEvents(text: string, options: { course?: string; year?: n
     line = line.replace(/^[>•*·]+\s*/, "").replace(/^\d+[.)]\s+/, "").replace(/^[-–—]\s+/, "");
     if (!line) continue;
 
-    const date = findDate(line, year);
+    const date = findDate(line, year) ?? (termStart ? findWeek(line, termStart) : null);
     if (!date) {
       undatedLines.push(line);
       continue;

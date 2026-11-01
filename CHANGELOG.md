@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- extract_schedule_events has a new optional term_start input. With it, a line such as Week 5: Midterm that names no date becomes an event on the first day of that week, where week 1 starts on term_start. Without it, those lines stay in undated_lines as before.
+
 - extract_schedule_events now reads more date styles: 2026/09/15, 15-Sep-2026, and a day first slash date such as 15/9 when the first number is above 12. Dates like 9/15, 15 Sep and 2026-09-15 keep working.
 
 - extract_schedule_events now drops a weekday name next to a date from the title, so Mon Sep 14: Quiz 1 gives the title Quiz 1. A date range such as Sep 14-18 or Oct 5 to Oct 9 becomes one event on the first day, with the last day in notes.

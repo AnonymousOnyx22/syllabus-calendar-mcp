@@ -16,7 +16,7 @@
   "tools": [
     {
       "name": "extract_schedule_events",
-      "description": "Extract dated events from pasted syllabus text. Each line that names a date becomes one event, with a title, a type, a date and optional times. Inputs: text (the pasted syllabus or course schedule, one event per line), course (a course name or code to put on every event) and year (the year to use when a date has no year). Titles are read from the words around the date, and each event is marked as an assignment, exam, quiz, lab, reading, class or other. Any line that has no date is returned in undated_lines instead of being dropped. Example prompt: \"Turn this syllabus into calendar events: Assignment 1 due Sep 15, Midterm exam October 20 at 10:00.\"",
+      "description": "Extract dated events from pasted syllabus text. Each line that names a date becomes one event, with a title, a type, a date and optional times. Inputs: text (the pasted syllabus or course schedule, one event per line), course (a course name or code to put on every event), year (the year to use when a date has no year) and term_start (the first day of the term, so a line such as Week 5: Midterm becomes an event). Titles are read from the words around the date, and each event is marked as an assignment, exam, quiz, lab, reading, class or other. Any line that has no date is returned in undated_lines instead of being dropped. Example prompt: \"Turn this syllabus into calendar events: Assignment 1 due Sep 15, Midterm exam October 20 at 10:00.\"",
       "parameters": [
         {
           "name": "text",
@@ -35,6 +35,12 @@
           "type": "number",
           "required": false,
           "description": "The year to use when a date has no year. Defaults to the current year."
+        },
+        {
+          "name": "term_start",
+          "type": "string",
+          "required": false,
+          "description": "First day of the term as YYYY-MM-DD. When set, a line like Week 5: Midterm with no date becomes an event on the first day of week 5, where week 1 starts on this date."
         }
       ],
       "example": {
