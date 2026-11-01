@@ -103,6 +103,15 @@ describe("build_ics", () => {
       if (existsSync(path)) unlinkSync(path);
     }
   });
+  it("names the missing folder when the output_path folder does not exist", async () => {
+    const folder = join(tmpdir(), `missing-folder-${Date.now()}`);
+    const path = join(folder, "calendar.ics");
+    const r = await call("build_ics", { events: [{ title: "Test", date: "2026-09-15" }], output_path: path });
+    expect(r.isError).toBe(true);
+    expect(r.text).toContain(folder);
+    expect(r.text).toContain("does not create folders");
+    expect(r.text).toContain("leave output_path out");
+  });
 });
 
 describe("merge_calendars", () => {
@@ -119,5 +128,15 @@ describe("merge_calendars", () => {
     const r = await call("merge_calendars", { calendars: [{ name: "One", ics: ics1 }, { name: "Two", ics: ics2 }] });
     expect(r.isError).toBe(false);
     expect(r.structured?.event_count).toBe(1);
+  });
+  it("names the missing folder when the output_path folder does not exist", async () => {
+    const ics1 = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//AnonymousOnyx22//syllabus-calendar-mcp//EN\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\nX-WR-CALNAME:One\r\nBEGIN:VEVENT\r\nUID:a@x\r\nDTSTAMP:20260101T000000Z\r\nDTSTART:20260915T100000\r\nDTEND:20260915T110000\r\nSUMMARY:Class\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n";
+    const folder = join(tmpdir(), `missing-folder-${Date.now()}`);
+    const path = join(folder, "merged.ics");
+    const r = await call("merge_calendars", { calendars: [{ name: "One", ics: ics1 }], output_path: path });
+    expect(r.isError).toBe(true);
+    expect(r.text).toContain(folder);
+    expect(r.text).toContain("does not create folders");
+    expect(r.text).toContain("leave output_path out");
   });
 });

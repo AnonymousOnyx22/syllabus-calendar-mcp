@@ -75,7 +75,7 @@ const classInput = z.object({
 const outputPath = z
   .string()
   .optional()
-  .describe("Optional file path. When it is passed, the calendar is written there as a .ics file.");
+  .describe("Optional file path for the .ics file. The folder must already exist because folders are not created. Leave it out to get the calendar text back instead.");
 
 export const tools: ToolDef<Api>[] = [
   {

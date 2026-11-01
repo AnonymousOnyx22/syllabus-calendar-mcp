@@ -1,4 +1,5 @@
 import { writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 
 /** The kinds of dated item a syllabus usually names. */
 export const EVENT_TYPES = ["assignment", "exam", "quiz", "lab", "reading", "class", "other"] as const;
@@ -632,7 +633,18 @@ export function validateIcs(ics: string): IcsValidation {
 export function writeIcsFile(path: string, ics: string): string {
   const target = path.trim();
   if (!target) throw new Error("output_path is empty. Pass a file path, or leave it out to get the calendar text only.");
-  writeFileSync(target, ics, "utf8");
+  try {
+    writeFileSync(target, ics, "utf8");
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+      const folder = dirname(resolve(target));
+      throw new Error(
+        `The folder "${folder}" does not exist. This server does not create folders. Create the folder first, or leave output_path out to get the calendar text back and save it as a .ics file yourself.`,
+      );
+    }
+    const reason = err instanceof Error ? err.message : String(err);
+    throw new Error(`Could not write the calendar to "${target}": ${reason}`);
+  }
   return target;
 }
 

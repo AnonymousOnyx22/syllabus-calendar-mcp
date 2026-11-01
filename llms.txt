@@ -71,7 +71,7 @@ Parameters: events (array, optional), classes (array, optional), reminders_minut
 - classes (array, optional): Recurring classes to add as weekly events.
 - reminders_minutes (array, optional): Reminder times in whole minutes before an event. Defaults to [60].
 - calendar_name (string, optional): Name shown in the calendar app. Defaults to "Course calendar".
-- output_path (string, optional): Optional file path. When it is passed, the calendar is written there as a .ics file.
+- output_path (string, optional): Optional file path for the .ics file. The folder must already exist because folders are not created. Leave it out to get the calendar text back instead.
 
 Example call: {"name":"build_ics","arguments":{"events":[{"title":"Assignment 1","type":"assignment","date":"2026-09-15"}],"reminders_minutes":[1440]}}
 Output: Built a calendar with 1 event, 0 classes and 0 class meetings. The file passed every check.
@@ -83,7 +83,7 @@ Merge several course calendars into one and list timed events that overlap. Inpu
 Parameters: calendars (array, required), calendar_name (string, optional), output_path (string, optional).
 - calendars (array, required): The calendars to merge, each with the calendar text and an optional name.
 - calendar_name (string, optional): Name for the merged calendar. Defaults to "Merged course calendar".
-- output_path (string, optional): Optional file path. When it is passed, the calendar is written there as a .ics file.
+- output_path (string, optional): Optional file path for the .ics file. The folder must already exist because folders are not created. Leave it out to get the calendar text back instead.
 
 Example call: {"name":"merge_calendars","arguments":{"calendars":[{"name":"BIO 101","ics":"BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//AnonymousOnyx22//syllabus-calendar-mcp//EN\nBEGIN:VEVENT\nUID:test1@syllabus-calendar-mcp\nDTSTAMP:20260101T000000Z\nDTSTART:20260915T100000\nDTEND:20260915T110000\nSUMMARY:Class\nEND:VEVENT\nEND:VCALENDAR"}],"calendar_name":"Merged"}}
 Output: Merged 1 event from 1 calendar.

@@ -270,7 +270,7 @@
           "name": "output_path",
           "type": "string",
           "required": false,
-          "description": "Optional file path. When it is passed, the calendar is written there as a .ics file."
+          "description": "Optional file path for the .ics file. The folder must already exist because folders are not created. Leave it out to get the calendar text back instead."
         }
       ],
       "example": {
@@ -321,7 +321,7 @@
           "name": "output_path",
           "type": "string",
           "required": false,
-          "description": "Optional file path. When it is passed, the calendar is written there as a .ics file."
+          "description": "Optional file path for the .ics file. The folder must already exist because folders are not created. Leave it out to get the calendar text back instead."
         }
       ],
       "example": {
