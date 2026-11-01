@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- build_ics has a new optional timezone input, an IANA name such as America/Toronto. With it, timed events and weekly classes carry a TZID, so they do not shift in Google Calendar, Apple Calendar or Outlook for students in another zone. The file does not include a VTIMEZONE block, and all day events are not affected. Without timezone, the file is the same as before.
+
 - extract_schedule_events has a new optional term_start input. With it, a line such as Week 5: Midterm that names no date becomes an event on the first day of that week, where week 1 starts on term_start. Without it, those lines stay in undated_lines as before.
 
 - extract_schedule_events now reads more date styles: 2026/09/15, 15-Sep-2026, and a day first slash date such as 15/9 when the first number is above 12. Dates like 9/15, 15 Sep and 2026-09-15 keep working.

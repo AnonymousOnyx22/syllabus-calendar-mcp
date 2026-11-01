@@ -396,6 +396,20 @@ function icsDateTime(date: string, time: string): string {
   return `${icsDate(date)}T${time.replace(":", "")}00`;
 }
 
+/** Returns the zone name if it is a real IANA zone, or throws an error that says how to fix it. */
+export function checkTimezone(value: string): string {
+  const name = value.trim();
+  const fail = () =>
+    new Error(`"${value}" is not a time zone name. Use an IANA name such as America/Toronto or Europe/London.`);
+  try {
+    new Intl.DateTimeFormat("en-CA", { timeZone: name });
+  } catch {
+    throw fail();
+  }
+  if (!name.includes("/") && name.toUpperCase() !== "UTC") throw fail();
+  return name;
+}
+
 function utcStamp(now: Date): string {
   return (
     `${now.getUTCFullYear()}${pad(now.getUTCMonth() + 1)}${pad(now.getUTCDate())}` +
@@ -428,6 +442,8 @@ export interface BuildIcsInput {
   classes?: RecurringClass[];
   reminders_minutes?: number[];
   calendar_name?: string;
+  /** An IANA time zone name, such as America/Toronto. Timed events are tied to it. */
+  timezone?: string;
 }
 
 export interface BuildIcsResult {
@@ -504,6 +520,8 @@ export function buildIcs(input: BuildIcsInput): BuildIcsResult {
   }
 
   const calendarName = input.calendar_name?.trim() || "Course calendar";
+  const zone = input.timezone?.trim() ? checkTimezone(input.timezone) : null;
+  const tzid = zone ? `;TZID=${zone}` : "";
   const stamp = utcStamp(new Date());
   const lines: string[] = [
     "BEGIN:VCALENDAR",
@@ -513,6 +531,7 @@ export function buildIcs(input: BuildIcsInput): BuildIcsResult {
     "METHOD:PUBLISH",
     `X-WR-CALNAME:${escapeText(calendarName)}`,
   ];
+  if (zone) lines.push(`X-WR-TIMEZONE:${zone}`);
 
   const normalized = events.map(normalizeEvent).sort((a, b) => {
     if (a.date !== b.date) return a.date < b.date ? -1 : 1;
@@ -525,8 +544,8 @@ export function buildIcs(input: BuildIcsInput): BuildIcsResult {
     lines.push(`UID:${uid}`);
     lines.push(`DTSTAMP:${stamp}`);
     if (event.start_time) {
-      lines.push(`DTSTART:${icsDateTime(event.date, event.start_time)}`);
-      if (event.end_time) lines.push(`DTEND:${icsDateTime(event.date, event.end_time)}`);
+      lines.push(`DTSTART${tzid}:${icsDateTime(event.date, event.start_time)}`);
+      if (event.end_time) lines.push(`DTEND${tzid}:${icsDateTime(event.date, event.end_time)}`);
     } else {
       lines.push(`DTSTART;VALUE=DATE:${icsDate(event.date)}`);
       lines.push(`DTEND;VALUE=DATE:${icsDate(addDays(event.date, 1))}`);
@@ -551,11 +570,11 @@ export function buildIcs(input: BuildIcsInput): BuildIcsResult {
     lines.push("BEGIN:VEVENT");
     lines.push(`UID:${uid}`);
     lines.push(`DTSTAMP:${stamp}`);
-    lines.push(`DTSTART:${icsDateTime(first.date, item.start_time)}`);
-    if (item.end_time) lines.push(`DTEND:${icsDateTime(first.date, item.end_time)}`);
+    lines.push(`DTSTART${tzid}:${icsDateTime(first.date, item.start_time)}`);
+    if (item.end_time) lines.push(`DTEND${tzid}:${icsDateTime(first.date, item.end_time)}`);
     lines.push(`RRULE:FREQ=WEEKLY;BYDAY=${item.weekdays.join(",")};COUNT=${count}`);
     if (exdates.length) {
-      lines.push(`EXDATE:${exdates.map((day) => icsDateTime(day.date, item.start_time)).join(",")}`);
+      lines.push(`EXDATE${tzid}:${exdates.map((day) => icsDateTime(day.date, item.start_time)).join(",")}`);
     }
     lines.push(`SUMMARY:${escapeText(item.title)}`);
     lines.push(`DESCRIPTION:${escapeText(`Course: ${item.course}`)}`);

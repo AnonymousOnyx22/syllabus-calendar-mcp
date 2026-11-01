@@ -93,6 +93,27 @@ describe("build_ics", () => {
     expect((r.structured?.ics as string)).toContain("BEGIN:VCALENDAR");
     expect((r.structured?.ics as string)).toMatch(/\r\n/);
   });
+  it("adds TZID to timed events and classes when timezone is passed", async () => {
+    const r = await call("build_ics", {
+      timezone: "America/Toronto",
+      events: [{ title: "Midterm", date: "2026-10-20", start_time: "10:00", end_time: "11:30" }, { title: "Essay", date: "2026-10-21" }],
+      classes: [{ course: "BIO 101", weekdays: ["Tue"], start_date: "2026-09-08", end_date: "2026-09-29", start_time: "10:00", holidays: ["2026-09-22"] }],
+    });
+    expect(r.isError).toBe(false);
+    expect(r.structured?.valid).toBe(true);
+    const ics = r.structured?.ics as string;
+    expect(ics).toContain("DTSTART;TZID=America/Toronto:20261020T100000");
+    expect(ics).toContain("DTEND;TZID=America/Toronto:20261020T113000");
+    expect(ics).toContain("DTSTART;TZID=America/Toronto:20260908T100000");
+    expect(ics).toContain("EXDATE;TZID=America/Toronto:20260922T100000");
+    expect(ics).toContain("DTSTART;VALUE=DATE:20261021");
+  });
+  it("rejects an unknown timezone and leaves times as before without one", async () => {
+    const bad = await call("build_ics", { timezone: "Mars/Base", events: [{ title: "A", date: "2026-09-15" }] });
+    expect(bad.isError).toBe(true);
+    const plain = await call("build_ics", { events: [{ title: "A", date: "2026-09-15", start_time: "09:00" }] });
+    expect(plain.structured?.ics as string).toContain("DTSTART:20260915T090000");
+  });
   it("writes file when output_path passed", async () => {
     const path = join(tmpdir(), `test-${Date.now()}.ics`);
     try {

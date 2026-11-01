@@ -273,6 +273,12 @@
           "description": "Name shown in the calendar app. Defaults to \"Course calendar\"."
         },
         {
+          "name": "timezone",
+          "type": "string",
+          "required": false,
+          "description": "IANA time zone name for timed events, such as America/Toronto. Without it, times have no zone and calendar apps use their own."
+        },
+        {
           "name": "output_path",
           "type": "string",
           "required": false,

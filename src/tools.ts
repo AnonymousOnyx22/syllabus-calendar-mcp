@@ -208,7 +208,7 @@ export const tools: ToolDef<Api>[] = [
     title: "Build an ics calendar",
     description:
       "Build a valid .ics calendar file from dated events and recurring classes, with reminders. " +
-      "Inputs: events (each with title, date, optional start_time, end_time, type, course, location and notes), classes (each with course, weekdays, start_date, end_date, start_time and optional end_time, location, holidays and reading_weeks), reminders_minutes (whole minutes before each event, default 60), calendar_name and optional output_path. " +
+      "Inputs: events (each with title, date, optional start_time, end_time, type, course, location and notes), classes (each with course, weekdays, start_date, end_date, start_time and optional end_time, location, holidays and reading_weeks), reminders_minutes (whole minutes before each event, default 60), calendar_name, optional timezone and optional output_path. Pass timezone as an IANA name such as America/Toronto so timed events keep the right hour in Google Calendar, Apple Calendar and Outlook. " +
       "Each class becomes one weekly recurring event with holidays and reading weeks removed. The tool checks the file before returning it. " +
       'Example prompt: "Make an .ics file for my course with a reminder one day before each assignment."',
     inputSchema: {
@@ -219,6 +219,10 @@ export const tools: ToolDef<Api>[] = [
         .optional()
         .describe("Reminder times in whole minutes before an event. Defaults to [60]. Pass an empty array for no reminders."),
       calendar_name: z.string().optional().describe('Name shown in the calendar app. Defaults to "Course calendar".'),
+      timezone: z
+        .string()
+        .optional()
+        .describe("IANA time zone name for timed events, such as America/Toronto. Without it, times have no zone and calendar apps use their own."),
       output_path: outputPath,
     },
     outputSchema: {
