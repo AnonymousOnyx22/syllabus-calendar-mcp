@@ -41,3 +41,27 @@ describe("extract_schedule_events with no dates", () => {
     expect((out.structured as { next_step: string }).next_step).toContain("Add a date to each line");
   });
 });
+
+describe("extractEvents with weekdays and date ranges", () => {
+  it("drops a weekday name beside the date from the title", () => {
+    const result = extractEvents("Mon Sep 14: Quiz 1\nProject proposal due Oct 2 (Fri)", { year: 2026 });
+    expect(result.events.map((e) => [e.date, e.title])).toEqual([
+      ["2026-09-14", "Quiz 1"],
+      ["2026-10-02", "Project proposal"],
+    ]);
+  });
+  it("keeps a date range as one event on the first day with the end in notes", () => {
+    const result = extractEvents("Sep 14-18: Project work\nOct 5 to Oct 9 - Reading week\n12 Nov - 14 Nov Study break", { year: 2026 });
+    expect(result.count).toBe(3);
+    const byDate = Object.fromEntries(result.events.map((e) => [e.date, e]));
+    expect(byDate["2026-09-14"].title).toBe("Project work");
+    expect(byDate["2026-09-14"].notes).toBe("Runs to 2026-09-18.");
+    expect(byDate["2026-10-05"].notes).toBe("Runs to 2026-10-09.");
+    expect(byDate["2026-11-12"].notes).toBe("Runs to 2026-11-14.");
+  });
+  it("does not read a time after a dash as a range end", () => {
+    const result = extractEvents("Sep 14 - 10:00 Quiz", { year: 2026 });
+    expect(result.events[0].notes).toBeNull();
+    expect(result.events[0].start_time).toBe("10:00");
+  });
+});

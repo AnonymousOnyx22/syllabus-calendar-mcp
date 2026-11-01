@@ -22,10 +22,51 @@ interface Hit {
   index: number;
   length: number;
   value: string;
+  end?: string;
 }
 
 const MONTH_PATTERN =
   "Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?";
+
+const WEEKDAY_PATTERN = "Mon(?:day)?|Tue(?:s(?:day)?)?|Wed(?:nesday)?|Thu(?:r(?:s(?:day)?)?)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?";
+
+/** Widens a date hit over a weekday name beside it and a range end after it, such as Mon Sep 14-18. */
+function widenDate(text: string, hit: Hit, defaultYear: number): Hit {
+  let index = hit.index;
+  let length = hit.length;
+  let end: string | undefined;
+
+  const before = new RegExp(`\\b(?:${WEEKDAY_PATTERN})\\.?,?\\s+$`, "i").exec(text.slice(0, index));
+  if (before) {
+    index = before.index;
+    length += hit.index - index;
+  }
+
+  const rest = text.slice(hit.index + hit.length);
+  const weekdayAfter = new RegExp(`^\\s*\\(\\s*(?:${WEEKDAY_PATTERN})\\.?\\s*\\)`, "i").exec(rest);
+  if (weekdayAfter) length += weekdayAfter[0].length;
+
+  const tail = text.slice(index + length);
+  const range = new RegExp(
+    `^\\s*(?:-|–|—|to|through|until)\\s*((?:(?:${MONTH_PATTERN})\\.?\\s+)?\\d{1,2}(?:st|nd|rd|th)?(?:,?\\s+\\d{4})?)(?!\\d|:\\d|/|\\s*[ap]\\.?m\\b)`,
+    "i",
+  ).exec(tail);
+  if (range) {
+    const hasMonth = new RegExp(`^(?:${MONTH_PATTERN})`, "i").test(range[1]);
+    try {
+      const day = String(parseInt(range[1], 10)).padStart(2, "0");
+      const candidate = hasMonth ? parseDateValue(range[1], defaultYear) : parseDateValue(`${hit.value.slice(0, 8)}${day}`);
+      if (candidate > hit.value) {
+        end = candidate;
+        length += range[0].length;
+      }
+    } catch {
+      // The words after the dash are not a date, so the range is left out.
+    }
+  }
+
+  return { index, length, value: hit.value, end };
+}
 
 function findDate(text: string, defaultYear: number): Hit | null {
   const patterns: RegExp[] = [
@@ -48,7 +89,7 @@ function findDate(text: string, defaultYear: number): Hit | null {
   }
   if (!hits.length) return null;
   hits.sort((a, b) => a.index - b.index || b.length - a.length);
-  return hits[0];
+  return widenDate(text, hits[0], defaultYear);
 }
 
 function findTimes(text: string): Hit[] {
@@ -173,7 +214,7 @@ export function extractEvents(text: string, options: { course?: string; year?: n
       end_time: start && end && end > start ? end : null,
       course,
       location: null,
-      notes: null,
+      notes: date.end ? `Runs to ${date.end}.` : null,
     });
   }
 

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- extract_schedule_events now drops a weekday name next to a date from the title, so Mon Sep 14: Quiz 1 gives the title Quiz 1. A date range such as Sep 14-18 or Oct 5 to Oct 9 becomes one event on the first day, with the last day in notes.
+
 - build_ics and merge_calendars now name the folder that is missing when output_path points into a folder that does not exist, and remind you that folders are not created and that leaving output_path out returns the calendar text.
 
 - extract_schedule_events now answers with a count of 0, the lines that had no date, and a next_step that says how to fix the pasted text, instead of returning an error when no dated events are found.
