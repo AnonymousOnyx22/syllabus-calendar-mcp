@@ -62,9 +62,11 @@ describe("extract_schedule_events", () => {
     expect(r.text).toContain("1 line had no date");
     expect(r.text).toContain("Office hours by appointment");
   });
-  it("errors when no dates found", async () => {
+  it("returns a count of 0 with a fix the text hint when no dates found", async () => {
     const r = await call("extract_schedule_events", { text: "Just some notes" });
-    expect(r.isError).toBe(true);
+    expect(r.isError).toBeFalsy();
+    expect(r.text).toContain("0 events found.");
+    expect(r.text).toContain("Add a date to each line");
   });
 });
 

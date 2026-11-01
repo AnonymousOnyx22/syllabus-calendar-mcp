@@ -11,7 +11,7 @@ import {
   type RecurringClass,
   type ScheduleEvent,
 } from "./calendar.js";
-import { describeEvent, extractEvents } from "./extract.js";
+import { describeEvent, extractEvents, fixTheTextHint } from "./extract.js";
 
 type Api = null;
 
@@ -87,6 +87,7 @@ export const tools: ToolDef<Api>[] = [
       "Titles are read from the words around the date, and each event is marked as an assignment, exam, quiz, lab, reading, class or other. " +
       "Any line that has no date is returned in undated_lines instead of being dropped silently. " +
       "The answer ends with a next step hint that points to build_ics when the events should become a calendar. " +
+      "When no line names a date, the count is 0 and the next step tells the student how to fix the pasted text. " +
       'Example prompt: "Turn this syllabus into calendar events: Assignment 1 due Sep 15, Midterm exam October 20 at 10:00."',
     inputSchema: {
       text: z.string().min(1).describe("The pasted syllabus or course schedule. Put one event on each line, with a date on the line."),
@@ -108,6 +109,19 @@ export const tools: ToolDef<Api>[] = [
     },
     run: async (a) => {
       const result = extractEvents(a.text, { course: a.course, year: a.year });
+      if (result.count === 0) {
+        const nextStep = fixTheTextHint(result.undated_lines);
+        return {
+          text: `0 events found.\n\n${nextStep}`,
+          structured: {
+            events: result.events,
+            count: result.count,
+            year: result.year,
+            undated_lines: result.undated_lines,
+            next_step: nextStep,
+          },
+        };
+      }
       const label = result.count === 1 ? "event" : "events";
       let text = `${result.count} ${label} found.`;
       if (result.undated_lines.length) {

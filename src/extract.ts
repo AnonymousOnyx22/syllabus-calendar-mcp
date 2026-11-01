@@ -179,10 +179,6 @@ export function extractEvents(text: string, options: { course?: string; year?: n
 
   events.sort((a, b) => a.date.localeCompare(b.date) || (a.start_time ?? "00:00").localeCompare(b.start_time ?? "00:00") || a.title.localeCompare(b.title));
 
-  if (events.length === 0) {
-    throw new Error(`No dated events found. ${fixTheTextHint(undatedLines)}`);
-  }
-
   return { events, count: events.length, year, undated_lines: undatedLines };
 }
 
