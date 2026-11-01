@@ -151,20 +151,24 @@ function makeDate(year: number, month: number, day: number): string {
 /** Reads a date in YYYY-MM-DD, month name first or day first form. */
 export function parseDateValue(value: string, defaultYear = new Date().getUTCFullYear()): string {
   const text = value.trim();
-  let match = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(text);
+  let match = /^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/.exec(text);
   if (match) return makeDate(Number(match[1]), Number(match[2]), Number(match[3]));
 
   match = /^([A-Za-z]+)\.?\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s+(\d{4}))?$/.exec(text);
   if (match) return makeDate(match[3] ? Number(match[3]) : defaultYear, monthNumber(match[1]), Number(match[2]));
 
-  match = /^(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+)\.?(?:,?\s+(\d{4}))?$/.exec(text);
+  match = /^(\d{1,2})(?:st|nd|rd|th)?(?:\s+|-)([A-Za-z]+)\.?(?:(?:,?\s+|-)(\d{4}))?$/.exec(text);
   if (match) return makeDate(match[3] ? Number(match[3]) : defaultYear, monthNumber(match[2]), Number(match[1]));
 
   match = /^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?$/.exec(text);
   if (match) {
     let year = match[3] ? Number(match[3]) : defaultYear;
     if (year < 100) year += 2000;
-    return makeDate(year, Number(match[1]), Number(match[2]));
+    const first = Number(match[1]);
+    const second = Number(match[2]);
+    // 15/9 can only be day first, so a first number above 12 is read that way.
+    if (first > 12 && second <= 12) return makeDate(year, second, first);
+    return makeDate(year, first, second);
   }
 
   throw new Error(`"${value}" is not a date. Use YYYY-MM-DD, such as 2026-09-15, or a date such as September 15, 2026.`);

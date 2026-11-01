@@ -70,9 +70,9 @@ function widenDate(text: string, hit: Hit, defaultYear: number): Hit {
 
 function findDate(text: string, defaultYear: number): Hit | null {
   const patterns: RegExp[] = [
-    /\b\d{4}-\d{1,2}-\d{1,2}\b/,
+    /\b\d{4}[-/]\d{1,2}[-/]\d{1,2}\b/,
     new RegExp(`\\b(?:${MONTH_PATTERN})\\.?\\s+\\d{1,2}(?:st|nd|rd|th)?(?:,?\\s+\\d{4})?\\b`, "i"),
-    new RegExp(`\\b\\d{1,2}(?:st|nd|rd|th)?\\s+(?:${MONTH_PATTERN})\\.?(?:,?\\s+\\d{4})?\\b`, "i"),
+    new RegExp(`\\b\\d{1,2}(?:st|nd|rd|th)?(?:\\s+|-)(?:${MONTH_PATTERN})\\.?(?:(?:,?\\s+|-)\\d{4})?\\b`, "i"),
     /\b\d{1,2}\/\d{1,2}(?:\/\d{2,4})?\b/,
   ];
 

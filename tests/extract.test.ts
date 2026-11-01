@@ -65,3 +65,17 @@ describe("extractEvents with weekdays and date ranges", () => {
     expect(result.events[0].start_time).toBe("10:00");
   });
 });
+
+describe("extractEvents with numeric and day first dates", () => {
+  it("reads 9/15, 15 Sep and 2026-09-15", () => {
+    const result = extractEvents("Quiz 1 9/15\nLab 15 Sep\nExam 2026-09-15", { year: 2026 });
+    expect(result.events.map((e) => e.date)).toEqual(["2026-09-15", "2026-09-15", "2026-09-15"]);
+    expect(result.undated_lines).toEqual([]);
+  });
+
+  it("reads a day first slash date, a dashed month and a year first slash date", () => {
+    const result = extractEvents("Essay due 15/9\nQuiz 2 15-Sep-2026\nTest 2026/10/20", { year: 2026 });
+    expect(result.events.map((e) => e.date).sort()).toEqual(["2026-09-15", "2026-09-15", "2026-10-20"]);
+    expect(result.events.map((e) => e.title)).toContain("Essay");
+  });
+});
